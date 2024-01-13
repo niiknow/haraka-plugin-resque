@@ -44,5 +44,5 @@ bower_components
 .DS_Store
 haraka-update.sh
 data/config/*
-data/plugins/*
-data/queue/*
+data/resque/*
+defaults/*
