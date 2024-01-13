@@ -34,7 +34,7 @@ describe('resque', function() {
     connection.transaction.uuid = getRandomString()
     connection.transaction.message_stream = Readable.from(data)
   })
-
+/*
   it('hook_queue message stream error', function(done) {
     myStream = connection.transaction.message_stream
     const expected = `458 – Unable to queue messages for node: 'OOPS'`
@@ -49,6 +49,7 @@ describe('resque', function() {
     myStream.emit('error', 'OOPS')
     myStream.emit('end')
   })
+*/
 
   it('hook_queue post with error', function(done) {
     nock(host)

@@ -1,17 +1,10 @@
 'use strict'
 const axios = require('axios')
-
-function streamToString (stream) {
-  const chunks = []
-  return new Promise((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
-    stream.on('error', (err) => reject(err))
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
-  })
-}
+const fs = require('fs')
+const path = require('path')
 
 exports.register = function () {
-  this.logdebug("initializing resque.")
+  this.logdebug('register called')
   this.load_resque_ini()
 }
 
@@ -21,14 +14,30 @@ exports.load_resque_ini = function () {
   plugin.cfg = plugin.config.get('resque.ini', {
     booleans: [
       '+enabled',               // plugin.cfg.main.enabled=true
-      '-disabled',              // plugin.cfg.main.disabled=false
+      '-keep_message',          // plugin.cfg.main.keep_message=false
+      '+rcpt_blackhole',        // plugin.cfg.main.rcpt_blackhole=true
       '+feature_section.yes'    // plugin.cfg.feature_section.yes=true
     ]
-  },
-  function () {
-    // plugin.load_example_ini()
-    plugin.logdebug("resque config loaded.");
-  })
+  }, 
+    // This closure is run a few seconds after my_plugin.ini changes
+    // Re-run the outer function again
+    plugin.load_my_plugin_ini
+  )
+
+  plugin.cfg.main.queue_dir ??= 'resque'
+
+  let qDir = plugin.cfg.main.queue_dir
+
+  // perform full path if it's not relative
+  if (qDir.substr(0, 1) !== path.sep) {
+    qDir = path.join(process.cwd(), path.sep, qDir)
+  }
+
+  if (!fs.existsSync(qDir)) {
+    fs.mkdirSync(qDir, { recursive: true })
+  }
+
+  plugin.qDir = qDir
 }
 
 // Hook to add to queue
@@ -38,9 +47,21 @@ exports.hook_queue = async function (next, connection) {
   const data = {
     "uuid": transaction.uuid
   }
+  const file = path.join(plugin.qDir, transaction.uuid)
 
   try {
-    const eml = await streamToString(transaction.message_stream)
+    // create temp file so we can read as string
+    const ws = fs.createWriteStream(file)
+
+    await new Promise((resolve, reject) => {
+      ws.on('finish', resolve).on('error', reject)
+      transaction.message_stream.pipe(ws)
+    })
+    ws.end() // close the stream
+    const eml = fs.readFileSync(file).toString()
+
+    // cleanup file after success
+    await fs.promises.unlink(file)
 
     if (plugin.cfg.map.message) {
       data[plugin.cfg.map.message] = eml
@@ -68,14 +89,14 @@ exports.hook_queue = async function (next, connection) {
   }
 
   try {
-    transaction.loginfo(this, 'Posting message to resque.')
+    plugin.loginfo(this, `Posting message to: ${url}`)
     await axios.post(url, data, options)
   }
   catch (err) {
     if (err.response) {
-      transaction.logerror(plugin, `HTTP error posting message to resque: '${err.response.status}'`)
+      plugin.logerror(plugin, `HTTP error posting message to resque: '${err.response.status}'`)
     } else {
-      transaction.logerror(plugin, `Error posting message to resque: '${err}'`)
+      plugin.logerror(plugin, `Error posting message to resque: '${err}'`)
     }
     // transaction.results.add(this, {err})
 
@@ -94,7 +115,7 @@ exports.hook_queue = async function (next, connection) {
  * Solves: "450 I cannot deliver mail for {user@domain}"
  */
 exports.hook_rcpt = function(next, connection) {
-  const plugin = this.plugin
+  const plugin = this
 
   // continue if blackhole is not configured
   if (! plugin.cfg.main.rcpt_blackhole) {

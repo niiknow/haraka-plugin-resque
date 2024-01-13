@@ -1,6 +1,3 @@
-[![CI Test Status][ci-img]][ci-url]
-[![Code Climate][clim-img]][clim-url]
-
 [![NPM][npm-img]][npm-url]
 
 # haraka-plugin-resque
@@ -23,38 +20,30 @@ vi config/auth_flat_file.ini
 ```
 Ref: https://haraka.github.io/plugins/auth/flat_file
 
-2.  This plugin pushes your email to the API.
+2.  This plugin pushes your email to a REST API.
 
 ```sh
 cd /path/to/local/haraka
 npm install haraka-plugin-resque
-echo "resque" >> config/plugins
+
+# you should disable dummy smtp_forward
+sed -i -e 's,^queue/smtp_forward,#queue/smtp_forward,' config/plugins
+
+# this enable resque if it's not already in config/plugins folder
+grep -qxF 'resque' config/plugins || echo "resque" >> config/plugins
+
+# now restart haraka
 service haraka restart
 ```
 
-3.  This plugin blackhole all outgoing email.
-
-Edit `outbound.ini` https://haraka.github.io/core/Outbound#outboundini
-And disable outbound with:
-```
-; see http://haraka.github.io/manual/Outbound.html
-;
-; disabled (default: false)
-disabled=true
-```
-
-More info: https://dzone.com/articles/creating-your-own-e-mail-service-with-haraka-postg
-https://github.com/haraka/Haraka/issues/20
-
-# Add your content here
-
-## INSTALL
-
+### To run locally
 ```sh
-cd /path/to/local/haraka
-npm install haraka-plugin-resque
-echo "resque" >> config/plugins
-service haraka restart
+docker-compose up
+```
+
+Then to test locally, simply:
+```
+swaks -f test@github.com -t resque@github.com --server localhost
 ```
 
 ### Configuration

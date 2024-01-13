@@ -8,22 +8,23 @@ services:
       - "25:25"
       - "587:587"
     volumes:
-      - ./data/plugins:/etc/haraka/plugins:rw
-      - ./data/config:/etc/haraka/config:rw
-      - ./index.js:/etc/haraka/plugins/resque.js:ro
-    command:
-      [
-        "bash /etc/haraka/config/mystart.sh"
+      - "./data/mystart.sh:/usr/local/bin/mystart.sh"
+      - "./data/config:/etc/haraka/config:rw"
+      - "./data/resque:/etc/haraka/resque:rw"
+      - "./index.js:/etc/haraka/plugins/resque.js:ro"
+    command: [
+        "/usr/local/bin/mystart.sh"
       ]
-
 # this is a trick to initialize our data with data from haraka image
   haraka-init:
     restart: 'no'
     image: instrumentisto/haraka:3.0.2
     volumes:
-      - ./data:/data:rw
-      - ./defaults:/1defaults:ro
+      - "./data/myinit.sh:/usr/local/bin/myinit.sh"
+      - "./data:/data:rw"
+      - "./config:/1config:ro"
+      - "./defaults:/1defaults:ro"
     command:
       [
-        "bash /data/myinit.sh"
+        "/usr/local/bin/myinit.sh"
       ]
