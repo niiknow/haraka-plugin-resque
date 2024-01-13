@@ -17,7 +17,7 @@ $EDITOR config/resque.ini
 
 ## USAGE
 
-SMTP-Client -> Haraka -> API -> Working-SMTP Server - using a different email sends on behalf of clientn
+SMTP-Client -> Haraka -> API -> Working-SMTP Server - using a different email sends on-behalf-of/sends-as client.
 
 1.  Using an existing software, you want to use SMTP to send email; so we setup Haraka with auth flat_file plugin allowing you to login.
 
@@ -43,6 +43,12 @@ grep -qxF 'resque' config/plugins || echo "resque" >> config/plugins
 # now restart haraka
 service haraka restart
 ```
+
+# But what is this Sends On-Behalf-Of?
+https://stackoverflow.com/questions/2782380/best-practices-sending-email-on-behalf-of-users
+
+The best method is to set the `Reply-To` header and play around with the From Name.  For example, if I set the `From Name` as `{$model->from} <-`, then in Outlook 365 it would look like so `reply-to@your-client.com <- <mail-service@your-sending-domain.com`
+
 
 ## To run/debug locally
 ```sh

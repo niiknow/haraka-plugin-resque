@@ -18,13 +18,13 @@ exports.load_resque_ini = function () {
       '+rcpt_blackhole',        // plugin.cfg.main.rcpt_blackhole=true
       '+feature_section.yes'    // plugin.cfg.feature_section.yes=true
     ]
-  }, 
-    // This closure is run a few seconds after my_plugin.ini changes
-    // Re-run the outer function again
-    plugin.load_my_plugin_ini
+  },
+  // This closure is run a few seconds after my_plugin.ini changes
+  // Re-run the outer function again
+  plugin.load_my_plugin_ini
   )
 
-  plugin.cfg.main.queue_dir ??= 'resque'
+  plugin.cfg.main.queue_dir = plugin.cfg.main.queue_dir ?? 'resque'
 
   let qDir = plugin.cfg.main.queue_dir
 
@@ -76,7 +76,7 @@ exports.hook_queue = async function (next, connection) {
   }
 
   // https://oxylabs.io/blog/nodejs-fetch-api
-  
+
   const url = plugin.cfg.main.url
 
   const customHeaders = {
@@ -97,7 +97,8 @@ exports.hook_queue = async function (next, connection) {
   catch (err) {
     if (err.response) {
       plugin.logerror(plugin, `HTTP error posting message to resque: '${err.response.status}'`)
-    } else {
+    }
+    else {
       plugin.logerror(plugin, `Error posting message to resque: '${err}'`)
     }
     // transaction.results.add(this, {err})
@@ -113,10 +114,10 @@ exports.hook_queue = async function (next, connection) {
 
 /**
  * Let's pretend we can deliver mail to these recipients.
- * 
+ *
  * Solves: "450 I cannot deliver mail for {user@domain}"
  */
-exports.hook_rcpt = function(next, connection) {
+exports.hook_rcpt = function (next, connection) {
   const plugin = this
 
   // continue if blackhole is not configured
