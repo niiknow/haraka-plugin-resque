@@ -1,24 +1,29 @@
 version: '3'
 
 services:
-  bouncer:
+  haraka-mail:
     image: instrumentisto/haraka:3.0.2
     restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost/?purge=true | grep -q OK"]
-      interval: 30s
-      timeout: 15s
-      retries: 3
-      start_period: 60s
     ports:
       - "25:25"
       - "587:587"
     volumes:
-      - ./index.js:/etc/haraka/plugins/resque.js
+      - ./data/plugins:/etc/haraka/plugins:rw
+      - ./data/config:/etc/haraka/config:rw
+      - ./index.js:/etc/haraka/plugins/resque.js:ro
     command:
       [
-        "bash",
-        "-c",
-        "cd /etc/haraka && npm install axios",
+        "bash /etc/haraka/config/mystart.sh"
       ]
 
+# this is a trick to initialize our data with data from haraka image
+  haraka-init:
+    restart: 'no'
+    image: instrumentisto/haraka:3.0.2
+    volumes:
+      - ./data:/data:rw
+      - ./defaults:/1defaults:ro
+    command:
+      [
+        "bash /data/myinit.sh"
+      ]
