@@ -1,6 +1,16 @@
 'use strict'
 
+function streamToString (stream) {
+  const chunks = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  })
+}
+
 exports.register = function () {
+  this.logdebug("initializing reque");
   this.load_resque_ini()
 
   // register hooks here. More info at https://haraka.github.io/core/Plugins/
@@ -18,6 +28,63 @@ exports.load_resque_ini = function () {
     ]
   },
   function () {
-    plugin.load_example_ini()
+    // plugin.load_example_ini()
+    this.logdebug("config loaded");
   })
 }
+
+// Hook to add to queue
+exports.hook_queue = async function (next, connection) {
+  const plugin = this
+  const transaction = connection.transaction
+  const url = plugin.cfg.main.url
+  let eml = '';
+
+  try {
+    eml = await streamToString(transaction.message_stream)
+  }
+  catch (err) {
+    return next(DENYSOFT, '458 – Unable to queue messages for node; ' . err);
+  }
+
+  // https://oxylabs.io/blog/nodejs-fetch-api
+  const data = {
+    eml
+  }
+  const postData = JSON.stringify(data)
+  const customHeaders = {
+    "accept": "application/json",
+    "Content-Type": "application/json",
+    "x-api-key": plugin.cfg.main.apikey
+    // fyi, NO need for content length
+  }
+
+  const options = {
+    method: "POST",
+    headers: customHeaders,
+    body: postData
+  }
+
+  try {
+    const response = await fetch(url, options)
+    const text = await response.text();
+
+    // network error in the 4xx–5xx range
+    // ok is in the range of 200-299
+    if (! response.ok) {
+      plugin.logdebug(text);
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+
+  }
+  catch (err) {
+    plugin.logdebug(err);
+
+    // blackhole this message as deny
+    return next(DENYSOFT, '458 – Unable to queue messages for node resque');
+  }
+
+  // successful POST, send next(OK) implies we blackhole this message from further processing.
+  return next(OK, "Your message has been resqued.")
+}
+

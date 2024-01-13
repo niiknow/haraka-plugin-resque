@@ -6,6 +6,46 @@
 # haraka-plugin-resque
 
 
+# NOTE
+This plugin uses the global `fetch` function, which only available with nodejs >= 18.  As of the writing of this plugin, nodejs 16 has already reached its end-of-life anyway.
+
+# Ideal Setup
+You're a SASS Provider (such as form submission like Wufoo) requiring to send email on-behalf-of client.
+
+SMTP -> Haraka -> API -> REAL SMTP using a different email sends on behalf of
+
+1.  Using an existing software, you want to use SMTP to send email; so we setup Haraka with auth flat_file plugin allowing you to login.
+
+```sh
+echo "tls
+auth/flat_file" > config/plugins
+vi config/auth_flat_file.ini
+```
+Ref: https://haraka.github.io/plugins/auth/flat_file
+
+2.  This plugin pushes your email to the API.
+
+```sh
+cd /path/to/local/haraka
+npm install haraka-plugin-resque
+echo "resque" >> config/plugins
+service haraka restart
+```
+
+3.  This plugin blackhole all outgoing email.
+
+Edit `outbound.ini` https://haraka.github.io/core/Outbound#outboundini
+And disable outbound with:
+```
+; see http://haraka.github.io/manual/Outbound.html
+;
+; disabled (default: false)
+disabled=true
+```
+
+More info: https://dzone.com/articles/creating-your-own-e-mail-service-with-haraka-postg
+https://github.com/haraka/Haraka/issues/20
+
 # Add your content here
 
 ## INSTALL
