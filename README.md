@@ -47,7 +47,7 @@ service haraka restart
 # But what is this Sends On-Behalf-Of?
 https://stackoverflow.com/questions/2782380/best-practices-sending-email-on-behalf-of-users
 
-The best method is to set the `Reply-To` header and play around with the From Name.  For example, if I set the `From Name` as `{reploy-to@your-client.com} <-`, then in Outlook 365 it would look like so `reply-to@your-client.com <- <mail-service@your-sending-domain.com>`
+The best method is to set the `Reply-To` header and play around with the `From Name`.  For example, if we set the `From Name` as `reply-to@your-client.com (original/client's from email) <-`, then Outlook 365 would look like so `reply-to@your-client.com <- <mail-service@your-sending-domain.com>`
 
 Then when user hit reply, it will go to/autofill with `reply-to@your-client.com`; which, if you look at from field, it look exactly like how it work `reply-to@your-client.com <- <mail-service@your-sending-domain.com>`
 
