@@ -2,16 +2,16 @@
 const axios = require('axios')
 
 function streamToString (stream) {
-  const chunks = [];
+  const chunks = []
   return new Promise((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on('error', (err) => reject(err));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
+    stream.on('error', (err) => reject(err))
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
   })
 }
 
 exports.register = function () {
-  this.logdebug("initializing reque");
+  this.logdebug("initializing resque.")
   this.load_resque_ini()
 
   // register hooks here. More info at https://haraka.github.io/core/Plugins/
@@ -30,7 +30,7 @@ exports.load_resque_ini = function () {
   },
   function () {
     // plugin.load_example_ini()
-    this.logdebug("config loaded");
+    plugin.logdebug("resque config loaded.");
   })
 }
 
@@ -38,21 +38,27 @@ exports.load_resque_ini = function () {
 exports.hook_queue = async function (next, connection) {
   const plugin = this
   const transaction = connection.transaction
-  const url = plugin.cfg.main.url
-  let eml = '';
+  const data = {
+    "uuid": transaction.uuid
+  }
 
   try {
-    eml = await streamToString(transaction.message_stream)
+    const eml = await streamToString(transaction.message_stream)
+
+    if (plugin.cfg.map.message) {
+      data[plugin.cfg.map.message] = eml
+    }
   }
   catch (err) {
-    return next(DENYSOFT, '458 – Unable to queue messages for node; ' . err);
+    transaction.results.add(plugin, `Error reading message_stream: '${err}'`)
+
+    return next(DENYSOFT, `458 – Unable to queue messages for node: '${err}'`)
   }
 
   // https://oxylabs.io/blog/nodejs-fetch-api
-  const data = {
-    eml
-  }
-  const postData = JSON.stringify(data)
+  
+  const url = plugin.cfg.main.url
+
   const customHeaders = {
     "accept": "application/json",
     "Content-Type": "application/json",
@@ -65,18 +71,23 @@ exports.hook_queue = async function (next, connection) {
   }
 
   try {
-    const response = await axios.post(url, data, options)
+    transaction.loginfo(this, 'Posting message to resque.')
+    await axios.post(url, data, options)
   }
   catch (err) {
     if (err.response) {
-      plugin.logdebug(JSON.encode(err.response));
+      transaction.logerror(plugin, `HTTP error posting message to resque: '${err.response.status}'`)
+    } else {
+      transaction.logerror(plugin, `Error posting message to resque: '${err}'`)
     }
+    transaction.results.add(this, {err})
 
     // blackhole this message as deny
-    return next(DENYSOFT, '458 – Unable to queue messages for node resque');
+    return next(DENYSOFT, '458 – Unable to queue messages for node resque.')
   }
 
+  transaction.results.add(this, { pass: 'message-queued' })
   // successful POST, send next(OK) implies we blackhole this message from further processing.
-  return next(OK, "Your message has been resqued.")
+  return next(OK)
 }
 
