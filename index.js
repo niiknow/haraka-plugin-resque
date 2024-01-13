@@ -13,9 +13,6 @@ function streamToString (stream) {
 exports.register = function () {
   this.logdebug("initializing resque.")
   this.load_resque_ini()
-
-  // register hooks here. More info at https://haraka.github.io/core/Plugins/
-  // this.register_hook('data_post', 'do_stuff_with_message')
 }
 
 exports.load_resque_ini = function () {
@@ -80,14 +77,30 @@ exports.hook_queue = async function (next, connection) {
     } else {
       transaction.logerror(plugin, `Error posting message to resque: '${err}'`)
     }
-    transaction.results.add(this, {err})
+    // transaction.results.add(this, {err})
 
     // blackhole this message as deny
     return next(DENYSOFT, '458 – Unable to queue messages for node resque.')
   }
 
-  transaction.results.add(this, { pass: 'message-queued' })
+  // transaction.results.add(this, { pass: 'message-queued' })
   // successful POST, send next(OK) implies we blackhole this message from further processing.
+  return next(OK)
+}
+
+/**
+ * Let's pretend we can deliver mail to these recipients.
+ * 
+ * Solves: "450 I cannot deliver mail for {user@domain}"
+ */
+exports.hook_rcpt = function(next, connection) {
+  const plugin = this.plugin
+
+  // continue if blackhole is not configured
+  if (! plugin.cfg.main.rcpt_blackhole) {
+    return next()
+  }
+
   return next(OK)
 }
 
