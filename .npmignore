@@ -64,6 +64,7 @@ defaults
 node_modules
 resque
 tests
+test
 
 
 
