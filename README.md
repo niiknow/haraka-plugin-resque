@@ -36,7 +36,7 @@ grep -qxF 'resque' config/plugins || echo "resque" >> config/plugins
 service haraka restart
 ```
 
-### To run locally
+### To run/debug locally
 ```sh
 docker-compose up
 ```

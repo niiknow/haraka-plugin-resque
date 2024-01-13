@@ -60,8 +60,10 @@ exports.hook_queue = async function (next, connection) {
     ws.end() // close the stream
     const eml = fs.readFileSync(file).toString()
 
-    // cleanup file after success
-    await fs.promises.unlink(file)
+    if (! plugin.cfg.main.keep_message) {
+      // cleanup file after success
+      await fs.promises.unlink(file)
+    }
 
     if (plugin.cfg.map.message) {
       data[plugin.cfg.map.message] = eml
