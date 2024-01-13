@@ -57,3 +57,13 @@ codecov.yml
 .travis.yml
 .eslintrc.yaml
 .eslintrc.json
+cleanup.sh
+docker-compose.yml
+data
+defaults
+node_modules
+resque
+tests
+
+
+
