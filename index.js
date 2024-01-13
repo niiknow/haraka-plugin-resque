@@ -1,4 +1,5 @@
 'use strict'
+const axios = require('axios')
 
 function streamToString (stream) {
   const chunks = [];
@@ -60,25 +61,16 @@ exports.hook_queue = async function (next, connection) {
   }
 
   const options = {
-    method: "POST",
-    headers: customHeaders,
-    body: postData
+    headers: customHeaders
   }
 
   try {
-    const response = await fetch(url, options)
-    const text = await response.text();
-
-    // network error in the 4xx–5xx range
-    // ok is in the range of 200-299
-    if (! response.ok) {
-      plugin.logdebug(text);
-      throw new Error(`${response.status} ${response.statusText}`);
-    }
-
+    const response = await axios.post(url, data, options)
   }
   catch (err) {
-    plugin.logdebug(err);
+    if (err.response) {
+      plugin.logdebug(JSON.encode(err.response));
+    }
 
     // blackhole this message as deny
     return next(DENYSOFT, '458 – Unable to queue messages for node resque');

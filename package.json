@@ -27,9 +27,14 @@
   },
   "homepage": "https://github.com/niiknow/haraka-plugin-resque#readme",
   "devDependencies": {
+    "chai": "^5.0.0",
     "eslint": "^8.55.0",
     "eslint-plugin-haraka": "*",
     "haraka-test-fixtures": "*",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "nock": "^13.4.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.5"
   }
 }
