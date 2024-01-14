@@ -61,6 +61,7 @@ swaks -f test@github.com -t resque@github.com \
 - [x] Support login credential
 - [x] Support API URL switching based on credentials
 - [ ] Convert to Typescript and Jest for testing
+- [ ] More unit testing cases
 
 <!-- leave these buried at the bottom of the document -->
 [ci-img]: https://github.com/haraka/haraka-plugin-resque/actions/workflows/ci.yml/badge.svg
