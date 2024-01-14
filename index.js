@@ -5,7 +5,7 @@ const path = require('path')
 
 exports.register = function () {
   this.inherits('auth/auth_base')
-  this.logdebug('register called')  
+  this.logdebug('register called')
   this.load_resque_json()
 
   this.register_hook('queue_outbound', 'do_resque');
@@ -93,11 +93,11 @@ exports.do_resque = async function (next, connection) {
   const data = {
     "uuid": transaction.uuid
   }
-  
+
   plugin.loginfo(plugin, `Processing transaction '${data.uuid} for user '${auth}'`)
 
   const file = path.join(plugin.qDir, transaction.uuid)
- 
+
   try {
     // create temp file so we can read as string
     plugin.loginfo(plugin, `Creating '${file}'`)
@@ -146,7 +146,8 @@ exports.do_resque = async function (next, connection) {
   }
   catch (err) {
     if (err.response) {
-      plugin.logerror(plugin, `HTTP error posting message to resque: '${err.response.status}'`)
+      const rsp = JSON.stringify(err.response.data)
+      plugin.logerror(plugin, `HTTP error posting message to resque: '${rsp}'`)
     }
     else {
       plugin.logerror(plugin, `Error posting message to resque: '${err}'`)
