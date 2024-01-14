@@ -3,21 +3,14 @@
 # haraka-plugin-resque
 Haraka plugin that act as a queue and perform REST post to a remote url.
 
+
 # Ideal Setup
 You're a SASS Provider (such as form submission like Wufoo) requiring to send email on-behalf-of client.
 
-### Configuration
-
-If the default configuration is not sufficient, copy the config file from the distribution into your haraka config dir and then modify it:
-
-```sh
-cp node_modules/haraka-plugin-resque/config/resque.json config/resque.json
-$EDITOR config/resque.json
-```
 
 ## USAGE
 
-SMTP-Client -> Haraka -> API -> Working-SMTP Server - using a different email sends on-behalf-of/sends-as client.
+SMTP-Client -> Haraka -> API -> Working-SMTP Server - using a different email `sends on-behalf-of/sends-as` your Client.
 
 This plugin pushes your email to a REST API.
 
@@ -31,23 +24,35 @@ sed -i -e 's,^queue/smtp_forward,#queue/smtp_forward,' config/plugins
 # this enable resque, if it's not already in config/plugins folder
 grep -qxF 'resque' config/plugins || echo "resque" >> config/plugins
 
-# now restart haraka
-service haraka restart
 ```
 
-## But what is this Sends On-Behalf-Of?
-https://stackoverflow.com/questions/2782380/best-practices-sending-email-on-behalf-of-users
+Next, copy and edit the default configuration.
 
+```sh
+cp node_modules/haraka-plugin-resque/config/resque.json config/resque.json
+$EDITOR config/resque.json
+
+# now restart haraka
+service haraka restart
+
+```
+
+
+## And what is this sends on-behalf-of?
 The best method is to set the `Reply-To` header and play around with the `From Name`.  For example, if we set the `From Name` as `reply-to@your-client.com (original/client's from email) <-`, then Outlook 365 would look like so `reply-to@your-client.com <- <mail-service@your-sending-domain.com>`
 
 Then when user hit reply, it will go to/autofill with `reply-to@your-client.com`; which, if you look at from field, it look exactly like how it work `reply-to@your-client.com <- <mail-service@your-sending-domain.com>`
 
+Ref: https://stackoverflow.com/questions/2782380/best-practices-sending-email-on-behalf-of-users
+
+
 ## To run/debug locally
 ```sh
+# run locally with
 docker-compose up
 ```
 
-Then to test locally, simply open a new terminal and exec:
+To test locally, simply open a new terminal and exec:
 ```sh
 # swaks can be install with homebrew on your macos
 # type: PLAIN,LOGIN,CRAM-MD5
@@ -58,14 +63,25 @@ swaks -f test@github.com -t resque@github.com \
 	--auth-user "usertest1" --auth-password "testes123"
 ```
 
-NOTE: it is recommended that you enable tls.  See Haraka documentation here: https://haraka.github.io/plugins/tls
+Now you can view/edit the files in `data/config` and `config/resque` to manipulate your running container configurations.  If you want a completely fresh start/restart, the `cleanup.sh` script be of help.
 
-Since we allow sending with any `FROM` address, `resque` requires authentication.  Therefore, we must configure `resque.json` with user credentials in order to authenticate. Then we also need to do the following configuration for Hakara to work:
+```sh
+# to reset/restart, simply take down the existing docker containers
+docker-compose down
+# run to cleanup data folder files
+./cleanup.sh
+# start a new set of containers
+docker-compose up
+```
 
-1. Enable tls in config/plugins - which is handle inside of our `mystart.sh`
-2. Enable tls by adding tls.ini - which is included in folder `defaults/config/tls.ini`
-3. Set your server `HOSTNAME` inside of docker-compose for using OpenSSL generated self-sign cert.
-4. Test it with `-tls` with swaks.  If you have SSL issue with certain email client (such as Wordpress SMTP plugin), then you might have to purchase an actual certificate and replace the two files `tls_cert.pem` and `tls_key.pem` inside of config folder.
+NOTE: It is recommended that you enable tls.  See Haraka documentation here: https://haraka.github.io/plugins/tls
+
+Since we allow sending with any `FROM` address, `resque` requires authentication.  Therefore, we must configure `resque.json` with user credentials. We also need the following configurations for Hakara to work:
+
+1. Enable `tls` in `config/plugins` - which is handled inside of `data/mystart.sh`
+2. Because we enable tls, we'll need `tls.ini` - which is included in `defaults/config/tls.ini`
+3. Set your server `HOSTNAME` inside of docker-compose for using OpenSSL generated self-signed cert.
+4. Test it with `-tls` with `swaks` to confirm that `STARTTLS` is working.  If you have SSL issue with certain email client (such as Wordpress SMTP plugin), then you might have to purchase an actual certificate with `tls_cert.pem` and `tls_key.pem` inside of `data/config` folder.
 
 ## Planning / Todo
 - [x] Json configuration
