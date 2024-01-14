@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 
 exports.register = function () {
-  this.logdebug('register called')
+  this.logdebug(this, 'register called')
 
   // this allow us to handle authentication here
   this.inherits('auth/auth_base')
@@ -111,13 +111,13 @@ exports.do_resque = async function (next, connection) {
     "resque-user": auth
   }
 
-  plugin.loginfo(plugin, `Processing transaction '${postData.uuid} for user '${auth}'`)
+  plugin.logdebug(plugin, `Processing transaction '${postData.uuid} for user '${auth}'`)
 
   const filePath = path.join(plugin.qDir, transaction.uuid)
 
   try {
     // create temp file so we can read as string
-    plugin.loginfo(plugin, `Creating '${filePath}'`)
+    plugin.logdebug(plugin, `Creating '${filePath}'`)
     const ws = fs.createWriteStream(filePath)
 
     await new Promise((resolve, reject) => {
@@ -130,7 +130,7 @@ exports.do_resque = async function (next, connection) {
 
     if (! plugin.cfg.main.keep_message) {
       // cleanup file after success
-      plugin.loginfo(plugin, `Deleting '${filePath}'`)
+      plugin.logdebug(plugin, `Deleting '${filePath}'`)
       await fs.promises.unlink(filePath)
     }
 
@@ -140,7 +140,7 @@ exports.do_resque = async function (next, connection) {
     }
   }
   catch (err) {
-    plugin.logwarn(plugin, `Stream read error: '${err}'`)
+    plugin.logerror(plugin, `Stream read error: '${err}'`)
     return next(DENYSOFT, `458 – Unable to queue messages for node: '${err}'`)
   }
 
@@ -161,7 +161,7 @@ exports.do_resque = async function (next, connection) {
   }
 
   try {
-    plugin.loginfo(plugin, `Posting message to: ${api_url}`)
+    plugin.logdebug(plugin, `Posting message to: ${api_url}`)
     await axios.post(api_url, postData, options)
   }
   catch (err) {
