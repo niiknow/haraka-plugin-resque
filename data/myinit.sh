@@ -15,8 +15,8 @@ if [ ! -f /data/config/plugins ]; then
   # copy existing config over to data config
   cp -R -u -p config/. /data/config
 
-  # copy our resque.ini to /data/config
-  cp -R -u -p /1config/resque.ini /data/config
+  # copy our resque.json to /data/config
+  cp -R -u -p /1config/resque.json /data/config
 fi
 
 # https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl

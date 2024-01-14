@@ -38,6 +38,10 @@ describe('resque', function () {
     nock(host)
       .post('/test')
       .reply(422, 'test data')
+      
+    connection.results.add({name:'auth'}, {
+      user: 'usertest1'
+    })
 
     const expected = `458 – Unable to queue messages for node resque.`
 
@@ -55,6 +59,10 @@ describe('resque', function () {
       .post('/test')
       .reply(202, 'test data')
 
+    connection.results.add({name:'auth'}, {
+      user: 'usertest1'
+    })
+
     plugin.hook_queue((code) => {
       // validate code is OK
       assert.equal(OK, code)
@@ -63,15 +71,15 @@ describe('resque', function () {
   })
 })
 
-describe('load_resque_ini', function () {
-  it('loads resque.ini from config/resque.ini', function (done) {
-    this.plugin.load_resque_ini()
+describe('load_resque_json', function () {
+  it('loads resque.json from config/resque.json', function (done) {
+    this.plugin.load_resque_json()
     assert.ok(this.plugin.cfg)
     done()
   })
 
   it('initializes enabled boolean', function (done) {
-    this.plugin.load_resque_ini()
+    this.plugin.load_resque_json()
     assert.equal(this.plugin.cfg.main.enabled, true, this.plugin.cfg)
     done()
   })

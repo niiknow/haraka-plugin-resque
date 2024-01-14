@@ -5,24 +5,17 @@ const path = require('path')
 
 exports.register = function () {
   this.logdebug('register called')
-  this.load_resque_ini()
+  this.load_resque_json()
 }
 
-exports.load_resque_ini = function () {
-  const plugin = this
-
-  plugin.cfg = plugin.config.get('resque.ini', {
-    booleans: [
-      '+enabled',               // plugin.cfg.main.enabled=true
-      '-keep_message',          // plugin.cfg.main.keep_message=false
-      '+rcpt_blackhole',        // plugin.cfg.main.rcpt_blackhole=true
-      '+feature_section.yes'    // plugin.cfg.feature_section.yes=true
-    ]
-  },
-  // This closure is run a few seconds after my_plugin.ini changes
-  // Re-run the outer function again
-  plugin.load_my_plugin_ini
-  )
+/**
+ * init queue dir
+ *
+ * @param  {rescue}  plugin
+ * @return void
+ */
+function resqueInitQueueDir (plugin) {
+  plugin.loginfo(plugin, 'init queue_dir')
 
   plugin.cfg.main.queue_dir = plugin.cfg.main.queue_dir ?? 'resque'
 
@@ -40,14 +33,64 @@ exports.load_resque_ini = function () {
   plugin.qDir = qDir
 }
 
+/**
+ * init users
+ *
+ * @param  {rescue}  plugin
+ * @return void
+ */
+function resqueInitUsers (plugin) {
+  plugin.loginfo(plugin, 'init users')
+
+  const users = plugin.cfg.users ?? {}
+  /*
+  Object.keys(users).forEach(key => {
+    // default url and apikey
+    const user = users[key]
+    user.url = user.url ?? plugin.cfg.main.api_key
+    user.apikey = user.apikey ?? plugin.cfg.main.apikey
+  })*/
+
+  plugin.cfg.users = users
+}
+
+exports.load_resque_json = function () {
+  const plugin = this
+  plugin.loginfo(plugin, 'loading config')
+
+  plugin.cfg = plugin.config.get('resque.json', {
+    booleans: [
+      '+enabled',               // plugin.cfg.main.enabled=true
+      '-keep_message',          // plugin.cfg.main.keep_message=false
+      '+rcpt_blackhole'         // plugin.cfg.main.rcpt_blackhole=true
+    ]
+  }, plugin.load_my_plugin_ini)
+
+  resqueInitQueueDir(plugin)
+  resqueInitUsers(plugin)
+}
+
 // Hook to add to queue
 exports.hook_queue = async function (next, connection) {
   const plugin = this
+
+  // get current user
+  const auth = connection.results.get('auth')?.user
+  if (!auth) {
+    return next(DENYDISCONNECT, '5.7.3 Authentication unsuccessful.')
+  }
+
+  const user = plugin.cfg.users[auth]
+  if (!auth) {
+    return next(DENYDISCONNECT, '5.3.5 Incorrect authentication data.')
+  }
+
   const transaction = connection.transaction
   const data = {
     "uuid": transaction.uuid
   }
   const file = path.join(plugin.qDir, transaction.uuid)
+ 
 
   try {
     // create temp file so we can read as string
@@ -76,13 +119,12 @@ exports.hook_queue = async function (next, connection) {
   }
 
   // https://oxylabs.io/blog/nodejs-fetch-api
-
-  const url = plugin.cfg.main.url
+  const api_url = user.api_url ?? plugin.cfg.main.api_url
 
   const customHeaders = {
     "accept": "application/json",
     "Content-Type": "application/json",
-    "x-api-key": plugin.cfg.main.apikey
+    "x-api-key": user.api_key ?? plugin.cfg.main.api_key
     // fyi, NO need for content length
   }
 
@@ -91,8 +133,8 @@ exports.hook_queue = async function (next, connection) {
   }
 
   try {
-    plugin.loginfo(this, `Posting message to: ${url}`)
-    await axios.post(url, data, options)
+    plugin.loginfo(plugin, `Posting message to: ${api_url}`)
+    await axios.post(api_url, data, options)
   }
   catch (err) {
     if (err.response) {
@@ -113,7 +155,10 @@ exports.hook_queue = async function (next, connection) {
 }
 
 /**
- * Let's pretend we can deliver mail to these recipients.
+ * This is for handling inbound email.  If we only send outbound email,
+ * then set main.rcpt_blackhole=true silently fail.
+ *
+ * And let's pretend we can deliver mail to these recipients.
  *
  * Solves: "450 I cannot deliver mail for {user@domain}"
  */
@@ -126,5 +171,41 @@ exports.hook_rcpt = function (next, connection) {
   }
 
   return next(OK)
+}
+
+/**
+ * Below is implementing AUTH which is a copy of auth flat_file
+ * auth_method: PLAIN,LOGIN,CRAM-MD5
+ *
+ */
+exports.hook_capabilities = function (next, connection) {
+  if (!connection.remote.is_private && !connection.tls.enabled) {
+    connection.logdebug(this, "Auth disabled for insecure public connection.")
+    return next()
+  }
+
+  const methods = this.cfg.main?.auth_methods ? this.cfg.main?.auth_methods.split(',') : null
+  if (methods && methods.length > 0) {
+    connection.capabilities.push(`AUTH ${methods.join(' ')}`)
+    connection.notes.allowed_auth_methods = methods
+  }
+
+  return next()
+}
+
+/**
+ * Implement to get plain password.
+ *
+ * Password length must also be greater than 8 characters.
+ */
+exports.get_plain_passwd = function (user, connection, cb) {
+  if (this.cfg.users[user]) {
+    const pw = this.cfg.users[user].password ?? ''
+    if (pw && pw.length > 8) {
+      cb(pw)
+    }
+  }
+
+  cb()
 }
 

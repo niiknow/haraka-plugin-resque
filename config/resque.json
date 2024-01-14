@@ -1,0 +1,31 @@
+{
+	"main": {
+		"enabled": true,
+		"rcpt_blackhole": true,
+		"queue_dir": "resque",
+		"keep_message": true,
+		"auth_method": "PLAIN,LOGIN,CRAM-MD5",
+		"api_url": "http://localhost/test",
+		"api_key": "31be88ea-3412-4132-a529-07d01313391a"
+	},
+	"map": {
+		"message": "eml"
+	},
+	"users": {
+		"usertest1": {
+			"password": "testes123",
+			"note": "all other configs fallback to main"
+		},
+		"usertest2": {
+			"password": "123testes",
+			"note": "api_key fallback to main",
+			"api_url": "http://localhost/test2"
+		},
+		"www.wordpress.site": {
+			"password": "07d01313391a",
+			"note": "user website can also be use as username so we can track down their credential",
+			"api_url": "http://localhost/test3",
+			"api_key": "3412-4132-a529-07d01313391a"
+		}
+	}
+}

@@ -12,9 +12,11 @@ services:
       - "./data/config:/etc/haraka/config:rw"
       - "./data/resque:/etc/haraka/resque:rw"
       - "./index.js:/etc/haraka/plugins/resque.js:ro"
-    command: [
-        "/usr/local/bin/mystart.sh"
-      ]
+    command: ["/usr/local/bin/mystart.sh"]
+    environment:
+# this simply single domain using the wildcard cert generated below
+      - HOSTNAME=mail.example.com
+
 # this is a trick to initialize our data with data from haraka image
   haraka-init:
     restart: 'no'
@@ -24,10 +26,8 @@ services:
       - "./data:/data:rw"
       - "./config:/1config:ro"
       - "./data/myinit.sh:/usr/local/bin/myinit.sh"
-    command:
-      [
-        "/usr/local/bin/myinit.sh"
-      ]
+    command: ["/usr/local/bin/myinit.sh"]
     environment:
       - APK_INSTALL_PACKAGES=openssl
+# here we have hostname as root so it generate self-sign wildcad *.example.com
       - HOSTNAME=example.com
