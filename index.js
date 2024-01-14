@@ -91,7 +91,8 @@ exports.do_resque = async function (next, connection) {
 
   const transaction = connection.transaction
   const data = {
-    "uuid": transaction.uuid
+    "uuid": transaction.uuid,
+    "resque-user": auth
   }
 
   plugin.loginfo(plugin, `Processing transaction '${data.uuid} for user '${auth}'`)
