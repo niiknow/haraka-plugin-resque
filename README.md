@@ -52,7 +52,7 @@ Then to test locally, simply open a new terminal and exec:
 # swaks can be install with homebrew on your macos
 # type: PLAIN,LOGIN,CRAM-MD5
 swaks -f test@github.com -t resque@github.com \
-	--server localhost --port 25 --auth LOGIN \
+	--server localhost -tls --port 25 --auth LOGIN \
 	--auth-user "usertest1" --auth-password "testes123"
 ```
 
