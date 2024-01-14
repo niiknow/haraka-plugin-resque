@@ -14,6 +14,7 @@ services:
       - "./index.js:/etc/haraka/plugins/resque.js:ro"
     command: ["/usr/local/bin/mystart.sh"]
     environment:
+      - APK_INSTALL_PACKAGES=openssl
 # this simply single domain using the wildcard cert generated below
       - HOSTNAME=mail.example.com
 
@@ -27,7 +28,3 @@ services:
       - "./config:/1config:ro"
       - "./data/myinit.sh:/usr/local/bin/myinit.sh"
     command: ["/usr/local/bin/myinit.sh"]
-    environment:
-      - APK_INSTALL_PACKAGES=openssl
-# here we have hostname as root so it generate self-sign wildcad *.example.com
-      - HOSTNAME=example.com
