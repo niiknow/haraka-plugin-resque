@@ -38,7 +38,7 @@ describe('resque', function () {
     nock(host)
       .post('/test')
       .reply(422, 'test data')
-      
+
     connection.results.add({name:'auth'}, {
       user: 'usertest1'
     })

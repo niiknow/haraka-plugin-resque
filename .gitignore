@@ -45,4 +45,5 @@ bower_components
 haraka-update.sh
 data/config/*
 data/resque/*
+resque/*
 
