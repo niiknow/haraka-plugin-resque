@@ -38,11 +38,11 @@ jspm_packages
 
 package-lock.json
 bower_components
+
 # Optional npm cache directory
-.npmrc
 .idea
 .DS_Store
 haraka-update.sh
 data/config/*
 data/resque/*
-defaults/*
+

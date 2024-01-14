@@ -20,11 +20,14 @@ services:
     restart: 'no'
     image: instrumentisto/haraka:3.0.2
     volumes:
-      - "./data/myinit.sh:/usr/local/bin/myinit.sh"
+      - "./defaults:/1defaults:ro"
       - "./data:/data:rw"
       - "./config:/1config:ro"
-      - "./defaults:/1defaults:ro"
+      - "./data/myinit.sh:/usr/local/bin/myinit.sh"
     command:
       [
         "/usr/local/bin/myinit.sh"
       ]
+    environment:
+      - APK_INSTALL_PACKAGES=openssl
+      - HOSTNAME=example.com
