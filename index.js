@@ -223,10 +223,10 @@ exports.get_plain_passwd = function (user, connection, cb) {
   if (this.cfg.users[user]) {
     const pw = this.cfg.users[user].password ?? ''
     if (pw && pw.length > 8) {
-      cb(pw)
+      return cb(pw)
     }
   }
 
-  cb()
+  return cb()
 }
 
