@@ -57,10 +57,10 @@ swaks -f test@github.com -t resque@github.com \
 ```
 
 ## Planning / Todo
--[x] Json configuration
--[x] Support login credential
--[x] Support API URL switching based on credentials
--[] Convert to Typescript and Jest for testing
+- [x] Json configuration
+- [x] Support login credential
+- [x] Support API URL switching based on credentials
+- [ ] Convert to Typescript and Jest for testing
 
 <!-- leave these buried at the bottom of the document -->
 [ci-img]: https://github.com/haraka/haraka-plugin-resque/actions/workflows/ci.yml/badge.svg
