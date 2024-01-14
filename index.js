@@ -4,8 +4,12 @@ const fs = require('fs')
 const path = require('path')
 
 exports.register = function () {
-  this.logdebug('register called')
+  this.inherits('auth/auth_base')
+  this.logdebug('register called')  
   this.load_resque_json()
+
+  this.register_hook('queue_outbound', 'do_resque');
+  this.register_hook('queue', 'discard');
 }
 
 /**
@@ -71,7 +75,7 @@ exports.load_resque_json = function () {
 }
 
 // Hook to add to queue
-exports.hook_queue = async function (next, connection) {
+exports.do_resque = async function (next, connection) {
   const plugin = this
 
   // get current user
@@ -94,6 +98,7 @@ exports.hook_queue = async function (next, connection) {
 
   try {
     // create temp file so we can read as string
+    plugin.loginfo(plugin, `Creating '${file}'`)
     const ws = fs.createWriteStream(file)
 
     await new Promise((resolve, reject) => {
@@ -105,6 +110,7 @@ exports.hook_queue = async function (next, connection) {
 
     if (! plugin.cfg.main.keep_message) {
       // cleanup file after success
+      plugin.loginfo(plugin, `Deleting '${file}'`)
       await fs.promises.unlink(file)
     }
 
@@ -155,10 +161,10 @@ exports.hook_queue = async function (next, connection) {
 }
 
 /**
- * This is for handling inbound email.  If we only send outbound email,
- * then set main.rcpt_blackhole=true silently fail.
+ * Inbound email handling. Set main.rcpt_blackhole=true since
+ * we only want to handle outbound email to queue.
  *
- * And let's pretend we can deliver mail to these recipients.
+ * And let's pretend we can deliver mail to these recipients inbox.
  *
  * Solves: "450 I cannot deliver mail for {user@domain}"
  */
@@ -170,6 +176,19 @@ exports.hook_rcpt = function (next, connection) {
     return next()
   }
 
+  return next(OK)
+}
+
+/**
+ * Outbound email handling. Since the purpose of this plugin is
+ * to simply queue the message, we discard all outbound by default.
+ *
+ * And let's pretend we sent out mail to outside servers.
+ *
+ * Solves: Prevent accidentally send out email and thereby getting our
+ * server in trouble.
+ */
+exports.discard = function (next, connection) {
   return next(OK)
 }
 

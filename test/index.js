@@ -34,7 +34,7 @@ describe('resque', function () {
     connection.transaction.message_stream = Readable.from(Buffer.from(getRandomString(), 'utf8'))
   })
 
-  it('hook_queue post with error', function (done) {
+  it('do_resque post with error', function (done) {
     nock(host)
       .post('/test')
       .reply(422, 'test data')
@@ -45,7 +45,7 @@ describe('resque', function () {
 
     const expected = `458 – Unable to queue messages for node resque.`
 
-    plugin.hook_queue((code, msg) => {
+    plugin.do_resque((code, msg) => {
       assert.equal(expected, msg)
 
       // validate code is DENYSOFT
@@ -54,7 +54,7 @@ describe('resque', function () {
     }, connection)
   })
 
-  it('hook_queue post with success', function (done) {
+  it('do_resque post with success', function (done) {
     nock(host)
       .post('/test')
       .reply(202, 'test data')
@@ -63,7 +63,7 @@ describe('resque', function () {
       user: 'usertest1'
     })
 
-    plugin.hook_queue((code) => {
+    plugin.do_resque((code) => {
       // validate code is OK
       assert.equal(OK, code)
       done()

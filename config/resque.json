@@ -4,7 +4,7 @@
 		"rcpt_blackhole": true,
 		"queue_dir": "resque",
 		"keep_message": true,
-		"auth_method": "PLAIN,LOGIN,CRAM-MD5",
+		"auth_methods": "PLAIN,LOGIN,CRAM-MD5",
 		"api_url": "http://localhost/test",
 		"api_key": "31be88ea-3412-4132-a529-07d01313391a"
 	},

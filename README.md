@@ -50,7 +50,10 @@ docker-compose up
 Then to test locally, simply open a new terminal and exec:
 ```sh
 # swaks can be install with homebrew on your macos
-swaks -f test@github.com -t resque@github.com --server localhost
+# type: PLAIN,LOGIN,CRAM-MD5
+swaks -f test@github.com -t resque@github.com \
+	--server localhost --port 25 --auth LOGIN \
+	--auth-user "usertest1" --auth-password "testes123"
 ```
 
 ## Planning / Todo
