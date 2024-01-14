@@ -93,9 +93,11 @@ exports.do_resque = async function (next, connection) {
   const data = {
     "uuid": transaction.uuid
   }
+  
+  plugin.loginfo(plugin, `Processing transaction '${data.uuid} for user '${auth}'`)
+
   const file = path.join(plugin.qDir, transaction.uuid)
  
-
   try {
     // create temp file so we can read as string
     plugin.loginfo(plugin, `Creating '${file}'`)
