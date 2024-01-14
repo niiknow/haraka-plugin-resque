@@ -51,10 +51,21 @@ Then to test locally, simply open a new terminal and exec:
 ```sh
 # swaks can be install with homebrew on your macos
 # type: PLAIN,LOGIN,CRAM-MD5
+# note: -tls is important here if you want to test with authenticate
+# https://github.com/haraka/Haraka/issues/2760#issuecomment-597248728
 swaks -f test@github.com -t resque@github.com \
 	--server localhost -tls --port 25 --auth LOGIN \
 	--auth-user "usertest1" --auth-password "testes123"
 ```
+
+NOTE: it is recommended that you enable tls.  See Haraka documentation here: https://haraka.github.io/plugins/tls
+
+Since we allow sending with any `FROM` address, `resque` requires authentication.  Therefore, we must configure `resque.json` with user credentials in order to authenticate. Then we also need to do the following configuration for Hakara to work:
+
+1. Enable tls in config/plugins - which is handle inside of our `mystart.sh`
+2. Enable tls by adding tls.ini - which is included in folder `defaults/config/tls.ini`
+3. Set your server `HOSTNAME` inside of docker-compose for using OpenSSL generated self-sign cert.
+4. Test it with `-tls` with swaks.  If you have SSL issue with certain email client (such as Wordpress SMTP plugin), then you might have to purchase an actual certificate and replace the two files `tls_cert.pem` and `tls_key.pem` inside of config folder.
 
 ## Planning / Todo
 - [x] Json configuration
