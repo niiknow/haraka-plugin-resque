@@ -83,6 +83,24 @@ Since we allow sending with any `FROM` address, `resque` requires authentication
 3. Set your server `HOSTNAME` inside of docker-compose for using OpenSSL generated self-signed cert.
 4. Test it with `-tls` with `swaks` to confirm that `STARTTLS` is working.  If you have SSL issue with certain email client (such as Wordpress SMTP plugin), then you might have to purchase an actual certificate with `tls_cert.pem` and `tls_key.pem` inside of `data/config` folder.
 
+## Note
+1.  To use self-signed cert with WP Mail SMTP plugin, make sure you disable verification with custom code:
+```php
+<?php
+add_filter('wp_mail_smtp_custom_options', function( $phpmailer ) {
+	$phpmailer->SMTPOptions = array(
+		'ssl' => array(
+			'verify_peer'       => false,
+			'verify_peer_name'  => false,
+			'allow_self_signed' => true
+		)
+	);
+
+	return $phpmailer;
+} );
+```
+
+
 ## Planning / Todo
 - [x] Json configuration
 - [x] Support login credential
