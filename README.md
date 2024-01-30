@@ -87,6 +87,7 @@ Since we allow sending with any `FROM` address, `resque` requires authentication
 1.  To use self-signed cert with WP Mail SMTP plugin, make sure you disable verification with custom code:
 ```php
 <?php
+// inject this php custom code into your wordpress
 add_filter('wp_mail_smtp_custom_options', function( $phpmailer ) {
 	$phpmailer->SMTPOptions = array(
 		'ssl' => array(
@@ -98,6 +99,20 @@ add_filter('wp_mail_smtp_custom_options', function( $phpmailer ) {
 
 	return $phpmailer;
 } );
+
+```
+
+2. Obviously, this is similar if you manually send with PHPMailer in your PHP application.
+```php
+// Create a new PHPMailer instance and init ssl option
+$mail = new PHPMailer();
+$mail->SMTPOptions = array(
+		'ssl' => array(
+			'verify_peer'       => false,
+			'verify_peer_name'  => false,
+			'allow_self_signed' => true
+		)
+	);
 ```
 
 
