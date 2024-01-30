@@ -118,12 +118,12 @@ $mail->SMTPOptions = array(
 'mailers' => [
     'smtp' => [
         'transport' => 'smtp',
-        //... other settings
+        //... haraka server settings
         'stream' => [
             'ssl' => [
-                'allow_self_signed' => true,
-                'verify_peer' => false,
-                'verify_peer_name' => false,
+				'verify_peer'       => false,
+				'verify_peer_name'  => false,
+				'allow_self_signed' => true
             ],
         ],
     ],
