@@ -114,7 +114,7 @@ $mail->SMTPOptions = array(
 		)
 	);
 
-// in Laravel, it would in be in 'config/mail.php' like so
+// In Laravel, set 'config/mail.php' like so
 'mailers' => [
     'smtp' => [
         'transport' => 'smtp',
@@ -135,7 +135,6 @@ $mail->SMTPOptions = array(
 - [x] Json configuration
 - [x] Support login credential
 - [x] Support API URL switching based on credentials
-- [ ] Convert to Typescript and Jest for testing
 - [ ] More unit testing cases
 
 <!-- leave these buried at the bottom of the document -->
