@@ -77,7 +77,7 @@ exports.load_resque_json = function () {
       '-keep_message',          // plugin.cfg.main.keep_message=false
       '+rcpt_blackhole'         // plugin.cfg.main.rcpt_blackhole=true
     ]
-  }, plugin.load_my_plugin_ini)
+  }, plugin.load_resque_json)
 
   resqueInitQueueDir(plugin)
   resqueInitUsers(plugin)
