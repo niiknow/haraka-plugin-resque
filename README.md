@@ -113,6 +113,21 @@ $mail->SMTPOptions = array(
 			'allow_self_signed' => true
 		)
 	);
+
+// in Laravel, it would in be in 'config/mail.php' like so
+'mailers' => [
+    'smtp' => [
+        'transport' => 'smtp',
+        //... other settings
+        'stream' => [
+            'ssl' => [
+                'allow_self_signed' => true,
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ],
+    ],
+]
 ```
 
 
