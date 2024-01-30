@@ -1,13 +1,12 @@
 {
   "name": "haraka-plugin-resque",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "description": "Haraka plugin that act as a queue and perform REST post to a remote url",
   "main": "index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "npx eslint *.js test",
-    "lintfix": "npx eslint --fix *.js test",
-    "versions": "npx dependency-version-checker check",
-    "test": "npx mocha"
+    "build": "tsc -p . && cp -f dist/index.js ./index.js || true",
+    "test": "npm run build && npx mocha"
   },
   "repository": {
     "type": "git",
@@ -20,18 +19,18 @@
     "queue",
     "rest"
   ],
-  "author": "Welcome Member <harakakaka@example.com>",
+  "author": "friends@niiknow.org",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/niiknow/haraka-plugin-resque/issues"
   },
   "homepage": "https://github.com/niiknow/haraka-plugin-resque#readme",
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "eslint-plugin-haraka": "*",
+    "@types/node": "^20.11.10",
     "haraka-test-fixtures": "*",
     "mocha": "^10.2.0",
-    "nock": "^13.5.1"
+    "nock": "^13.5.1",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "axios": "^1.6.7"

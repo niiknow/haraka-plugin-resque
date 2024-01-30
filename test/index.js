@@ -48,8 +48,8 @@ describe('resque', function () {
     plugin.do_resque((code, msg) => {
       assert.equal(expected, msg)
 
-      // validate code is DENYSOFT
-      assert.equal(DENYSOFT, code)
+      // validate code is DENYSOFTDISCONNECT
+      assert.equal(DENYSOFTDISCONNECT, code)
       done()
     }, connection)
   })
