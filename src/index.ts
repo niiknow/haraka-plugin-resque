@@ -7,22 +7,6 @@ const DENYDISCONNECT = 904;
 const DENYSOFTDISCONNECT = 909;
 
 /**
- * Convert stream to string
- * 
- * @param {ReadableStream} stream
- */
-async function streamToString(stream: any): Promise<string> {
-  const chunks: Uint8Array[] = []
-  return await new Promise((resolve, reject) => {
-    stream.on("data", (chunk: WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer>) =>
-      chunks.push(Buffer.from(chunk)),
-    )
-    stream.on("error", (err: any) => reject(err))
-    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")))
-  })
-}
-
-/**
  * init queue dir
  *
  * @param  {rescue}  plugin

@@ -47,30 +47,6 @@ var OK = 906;
 var DENYDISCONNECT = 904;
 var DENYSOFTDISCONNECT = 909;
 /**
- * Convert stream to string
- *
- * @param {ReadableStream} stream
- */
-function streamToString(stream) {
-    return __awaiter(this, void 0, void 0, function () {
-        var chunks;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    chunks = [];
-                    return [4 /*yield*/, new Promise(function (resolve, reject) {
-                            stream.on("data", function (chunk) {
-                                return chunks.push(Buffer.from(chunk));
-                            });
-                            stream.on("error", function (err) { return reject(err); });
-                            stream.on("end", function () { return resolve(Buffer.concat(chunks).toString("utf8")); });
-                        })];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
-        });
-    });
-}
-/**
  * init queue dir
  *
  * @param  {rescue}  plugin
