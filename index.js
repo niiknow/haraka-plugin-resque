@@ -145,7 +145,7 @@ exports.load_resque_json = load_resque_json;
  */
 function do_resque(next, connection) {
     return __awaiter(this, void 0, void 0, function () {
-        var plugin, transaction, auth, user, postData, filePath, eml, emlMap, err_1, api_url, customHeaders, options, err_2, rsp;
+        var plugin, transaction, auth, user, postData, filePath, ws_1, eml, emlMap, err_1, api_url, customHeaders, options, err_2, rsp;
         var _a, _b, _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
@@ -171,24 +171,35 @@ function do_resque(next, connection) {
                     filePath = path_1.default.join(plugin.qDir, transaction.uuid);
                     _e.label = 1;
                 case 1:
-                    _e.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, streamToString(transaction.message_stream)];
+                    _e.trys.push([1, 5, , 6]);
+                    // create temp file so we can read as string
+                    plugin.logdebug(plugin, "Creating '".concat(filePath, "'"));
+                    ws_1 = fs_1.default.createWriteStream(filePath);
+                    return [4 /*yield*/, new Promise(function (resolve, reject) {
+                            ws_1.on('finish', resolve).on('error', reject);
+                            transaction.message_stream.pipe(ws_1);
+                        })];
                 case 2:
-                    eml = _e.sent();
-                    if (plugin.cfg.main.keep_message) {
-                        // keeping file
-                        plugin.logdebug(plugin, "Keeping '".concat(filePath, "'"));
-                        fs_1.default.writeFileSync(filePath, eml, { flag: 'a' });
-                    }
+                    _e.sent();
+                    ws_1.end(); // close the stream
+                    eml = fs_1.default.readFileSync(filePath).toString();
+                    if (!!plugin.cfg.main.keep_message) return [3 /*break*/, 4];
+                    // cleanup file after success
+                    plugin.logdebug(plugin, "Deleting '".concat(filePath, "'"));
+                    return [4 /*yield*/, fs_1.default.promises.unlink(filePath)];
+                case 3:
+                    _e.sent();
+                    _e.label = 4;
+                case 4:
                     emlMap = (_b = plugin.cfg.map.message) !== null && _b !== void 0 ? _b : 'eml';
                     // map eml message base on configuration
                     postData[emlMap] = eml;
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 6];
+                case 5:
                     err_1 = _e.sent();
                     plugin.logerror(plugin, "Stream read error: '".concat(err_1, "'"));
                     return [2 /*return*/, next(DENYSOFTDISCONNECT, "458 \u2013 Unable to queue messages for node: '".concat(err_1, "'"))];
-                case 4:
+                case 6:
                     api_url = (_c = user.api_url) !== null && _c !== void 0 ? _c : plugin.cfg.main.api_url;
                     customHeaders = {
                         accept: 'application/json',
@@ -199,15 +210,15 @@ function do_resque(next, connection) {
                     options = {
                         headers: customHeaders,
                     };
-                    _e.label = 5;
-                case 5:
-                    _e.trys.push([5, 7, , 8]);
+                    _e.label = 7;
+                case 7:
+                    _e.trys.push([7, 9, , 10]);
                     plugin.logdebug(plugin, "Posting message to: ".concat(api_url));
                     return [4 /*yield*/, axios_1.default.post(api_url, postData, options)];
-                case 6:
+                case 8:
                     _e.sent();
-                    return [3 /*break*/, 8];
-                case 7:
+                    return [3 /*break*/, 10];
+                case 9:
                     err_2 = _e.sent();
                     if (err_2.response) {
                         rsp = JSON.stringify(err_2.response.data);
@@ -218,7 +229,7 @@ function do_resque(next, connection) {
                     }
                     // blackhole this message as deny
                     return [2 /*return*/, next(DENYSOFTDISCONNECT, '458 – Unable to queue messages for node resque.')];
-                case 8: 
+                case 10: 
                 // successful POST, send next(OK) implies we blackhole this
                 // message from downstream processing
                 return [2 /*return*/, next(OK)];

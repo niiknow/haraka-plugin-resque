@@ -142,14 +142,25 @@ export async function do_resque(next, connection) {
   const filePath = path.join(plugin.qDir, transaction.uuid);
 
   try {
-    const eml = await streamToString(transaction.message_stream);
+    // create temp file so we can read as string
+    plugin.logdebug(plugin, `Creating '${filePath}'`)
+    const ws = fs.createWriteStream(filePath)
 
-    if (plugin.cfg.main.keep_message) {
-      // keeping file
-      plugin.logdebug(plugin, `Keeping '${filePath}'`);
-      fs.writeFileSync(filePath, eml, { flag: 'a' });
+    await new Promise((resolve, reject) => {
+      ws.on('finish', resolve).on('error', reject)
+      transaction.message_stream.pipe(ws)
+    })
+    ws.end() // close the stream
+
+    const eml = fs.readFileSync(filePath).toString()
+
+    if (! plugin.cfg.main.keep_message) {
+      // cleanup file after success
+      plugin.logdebug(plugin, `Deleting '${filePath}'`)
+      await fs.promises.unlink(filePath)
     }
 
+    // map eml message base on configuration
     const emlMap = plugin.cfg.map.message ?? 'eml';
 
     // map eml message base on configuration
