@@ -11,15 +11,15 @@ const DENYSOFTDISCONNECT = 909;
  * 
  * @param {ReadableStream} stream
  */
-async function streamToString(stream) {
-    // lets have a ReadableStream as a stream variable
-    const chunks = [];
-
-    for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk));
-    }
-
-    return Buffer.concat(chunks).toString("utf-8");
+async function streamToString(stream: any): Promise<string> {
+  const chunks: Uint8Array[] = []
+  return await new Promise((resolve, reject) => {
+    stream.on("data", (chunk: WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer>) =>
+      chunks.push(Buffer.from(chunk)),
+    )
+    stream.on("error", (err: any) => reject(err))
+    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")))
+  })
 }
 
 /**
