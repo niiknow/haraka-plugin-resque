@@ -2,7 +2,7 @@ version: '3'
 
 services:
   haraka-mail:
-    image: instrumentisto/haraka:3.0.2
+    image: instrumentisto/haraka:3.0.3
     restart: always
     ports:
       - "25:25"
@@ -21,7 +21,7 @@ services:
 # this is a trick to initialize our data with data from haraka image
   haraka-init:
     restart: 'no'
-    image: instrumentisto/haraka:3.0.2
+    image: instrumentisto/haraka:3.0.3
     volumes:
       - "./defaults:/1defaults:ro"
       - "./data:/data:rw"
